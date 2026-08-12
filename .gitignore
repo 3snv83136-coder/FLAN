@@ -1,0 +1,25 @@
+# Dépendances
+**/node_modules/
+
+# Build Next
+**/.next/
+**/out/
+**/build/
+
+# Fichiers logs
+**/*.log
+
+# Environnements
+**/.env
+**/.env.*
+!**/.env.example
+
+# Git / IDE
+.DS_Store
+.cursor/
+.vscode/
+/.idea/
+
+# Supabase local (si utilisé)
+**/supabase/.temp/
+
