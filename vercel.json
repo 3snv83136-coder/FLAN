@@ -1,0 +1,6 @@
+{
+  "framework": "nextjs",
+  "installCommand": "cd flans-app && npm install",
+  "buildCommand": "cd flans-app && npm run build",
+  "devCommand": "cd flans-app && npm run dev"
+}
