@@ -1,0 +1,12 @@
+{
+  "name": "flan-monorepo-root",
+  "private": true,
+  "dependencies": {
+    "next": "14.2.35"
+  },
+  "scripts": {
+    "build": "cd flans-app && npm run build",
+    "dev": "cd flans-app && npm run dev",
+    "start": "cd flans-app && npm run start"
+  }
+}
