@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
-import { createClient } from "@/lib/supabase/server";
+import { createClientReadOnly } from "@/lib/supabase/server";
 import { formatEuros } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const profile = await requireProfile();
   if (profile.role !== "gerant") redirect("/vente");
 
-  const supabase = createClient();
+  const supabase = createClientReadOnly();
 
   const parisDate = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Paris",
@@ -21,19 +21,26 @@ export default async function DashboardPage() {
   // Fenêtre large ; filtre « jour Paris » côté app
   const { data: sales } = await supabase
     .from("sales")
-    .select("id, total_cents, point_of_sale_id, sold_at, points_of_sale(name)")
+    .select("id, total_cents, point_of_sale_id, sold_at")
     .gte("sold_at", `${parisDate}T00:00:00.000Z`)
     .order("sold_at", { ascending: false });
+
+  const { data: posAll } = await supabase
+    .from("points_of_sale")
+    .select("id, name");
+
+  const posNameById = new Map(
+    (posAll ?? []).map((p) => [p.id as string, p.name as string]),
+  );
 
   type SaleRow = {
     id: string;
     total_cents: number;
     point_of_sale_id: string;
     sold_at: string;
-    points_of_sale: { name: string } | null;
   };
 
-  const todaySales = ((sales ?? []) as unknown as SaleRow[]).filter((s) => {
+  const todaySales = ((sales ?? []) as SaleRow[]).filter((s) => {
     const local = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Paris",
       year: "numeric",
@@ -48,7 +55,7 @@ export default async function DashboardPage() {
 
   for (const sale of todaySales) {
     globalTotal += sale.total_cents;
-    const name = sale.points_of_sale?.name ?? "PDV";
+    const name = posNameById.get(sale.point_of_sale_id) ?? "PDV";
     const cur = byPos.get(sale.point_of_sale_id) ?? {
       name,
       total: 0,

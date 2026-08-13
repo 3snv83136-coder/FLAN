@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClientReadOnly } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { AppProfile } from "@/lib/sales/types";
 import type { UserRole } from "@/types/database";
 
 export async function requireProfile(): Promise<AppProfile> {
-  const supabase = createClient();
+  const supabase = createClientReadOnly();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
-import { createClient } from "@/lib/supabase/server";
+import { createClientReadOnly } from "@/lib/supabase/server";
 import { SaleScreen } from "@/components/vente/sale-screen";
 import type { SaleProduct } from "@/lib/sales/types";
 
@@ -14,7 +14,7 @@ export default async function VentePage({
   const profile = await requireProfile();
   if (profile.role === "producteur") redirect("/");
 
-  const supabase = createClient();
+  const supabase = createClientReadOnly();
 
   const { data: productsRaw } = await supabase
     .from("products")

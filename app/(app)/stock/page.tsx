@@ -1,23 +1,15 @@
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
-import { createClient } from "@/lib/supabase/server";
+import { createClientReadOnly } from "@/lib/supabase/server";
 import { formatEuros } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-type StockRow = {
-  product_id: string;
-  quantity: number;
-  batch_id: string | null;
-  products: { name: string; price_cents: number } | null;
-  production_batches: { expiry_date: string } | null;
-};
 
 export default async function StockPage() {
   const profile = await requireProfile();
   if (profile.role === "producteur") redirect("/");
 
-  const supabase = createClient();
+  const supabase = createClientReadOnly();
 
   let posId = profile.point_of_sale_id;
   let posName = "Mon PDV";
@@ -30,7 +22,7 @@ export default async function StockPage() {
       .order("name")
       .limit(1)
       .maybeSingle();
-    posId = firstPos?.id ?? null;
+    posId = (firstPos?.id as string | undefined) ?? null;
     posName = (firstPos?.name as string) ?? "PDV";
   } else if (posId) {
     const { data: pos } = await supabase
@@ -49,17 +41,45 @@ export default async function StockPage() {
 
   const { data: rows } = await supabase
     .from("stock_items")
-    .select(
-      "product_id, quantity, batch_id, products(name, price_cents), production_batches(expiry_date)",
-    )
+    .select("product_id, quantity, batch_id")
     .eq("point_of_sale_id", posId)
-    .gt("quantity", 0)
-    .order("updated_at");
+    .gt("quantity", 0);
+
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, name, price_cents");
+
+  const productById = new Map(
+    (products ?? []).map((p) => [
+      p.id as string,
+      {
+        name: p.name as string,
+        price_cents: p.price_cents as number,
+      },
+    ]),
+  );
+
+  const batchIds = Array.from(
+    new Set(
+      (rows ?? [])
+        .map((r) => r.batch_id as string | null)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  const expiryByBatch = new Map<string, string>();
+  if (batchIds.length > 0) {
+    const { data: batches } = await supabase
+      .from("production_batches")
+      .select("id, expiry_date")
+      .in("id", batchIds);
+    for (const b of batches ?? []) {
+      expiryByBatch.set(b.id as string, b.expiry_date as string);
+    }
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const items = (rows ?? []) as unknown as StockRow[];
 
   const byProduct = new Map<
     string,
@@ -71,20 +91,24 @@ export default async function StockPage() {
     }
   >();
 
-  for (const row of items) {
-    const name = row.products?.name ?? "Produit";
-    const price = row.products?.price_cents ?? 0;
-    const expiry = row.production_batches?.expiry_date ?? null;
-    const current = byProduct.get(row.product_id);
+  for (const row of rows ?? []) {
+    const productId = row.product_id as string;
+    const product = productById.get(productId);
+    const name = product?.name ?? "Produit";
+    const price = product?.price_cents ?? 0;
+    const expiry = row.batch_id
+      ? (expiryByBatch.get(row.batch_id as string) ?? null)
+      : null;
+    const current = byProduct.get(productId);
     if (!current) {
-      byProduct.set(row.product_id, {
+      byProduct.set(productId, {
         name,
         price_cents: price,
-        quantity: row.quantity,
+        quantity: row.quantity as number,
         nearestExpiry: expiry,
       });
     } else {
-      current.quantity += row.quantity;
+      current.quantity += row.quantity as number;
       if (
         expiry &&
         (!current.nearestExpiry || expiry < current.nearestExpiry)

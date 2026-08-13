@@ -29,34 +29,45 @@ function createAdminClient() {
 }
 
 export async function listLoginCandidates(): Promise<LoginCandidate[]> {
-  const admin = createAdminClient();
+  try {
+    const admin = createAdminClient();
 
-  const { data: profiles, error: profilesError } = await admin
-    .from("profiles")
-    .select("id, full_name, role, is_active")
-    .eq("is_active", true)
-    .order("full_name");
+    const { data: profiles, error: profilesError } = await admin
+      .from("profiles")
+      .select("id, full_name, role, is_active")
+      .eq("is_active", true)
+      .order("full_name");
 
-  if (profilesError) throw profilesError;
-  if (!profiles?.length) return [];
+    if (profilesError) {
+      console.error("listLoginCandidates profiles", profilesError);
+      return [];
+    }
+    if (!profiles?.length) return [];
 
-  const { data: listed, error: listError } = await admin.auth.admin.listUsers({
-    perPage: 200,
-  });
-  if (listError) throw listError;
+    const { data: listed, error: listError } = await admin.auth.admin.listUsers({
+      perPage: 200,
+    });
+    if (listError) {
+      console.error("listLoginCandidates users", listError);
+      return [];
+    }
 
-  const emailById = new Map(
-    listed.users.map((u) => [u.id, u.email ?? ""] as const),
-  );
+    const emailById = new Map(
+      listed.users.map((u) => [u.id, u.email ?? ""] as const),
+    );
 
-  return profiles
-    .map((p) => ({
-      id: p.id,
-      email: emailById.get(p.id) ?? "",
-      full_name: p.full_name as string,
-      role: p.role as string,
-    }))
-    .filter((p) => p.email);
+    return profiles
+      .map((p) => ({
+        id: p.id,
+        email: emailById.get(p.id) ?? "",
+        full_name: p.full_name as string,
+        role: p.role as string,
+      }))
+      .filter((p) => p.email);
+  } catch (e) {
+    console.error("listLoginCandidates", e);
+    return [];
+  }
 }
 
 export async function loginAs(userId: string) {
@@ -95,8 +106,8 @@ export async function loginAs(userId: string) {
   });
 
   if (verifyError) {
-    return { error: "Session non créée. Réessaie." };
+    return { error: `Session non créée : ${verifyError.message}` };
   }
 
-  redirect("/");
+  return { ok: true as const };
 }

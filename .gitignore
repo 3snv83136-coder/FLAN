@@ -27,3 +27,4 @@
 files.zip
 *.tsbuildinfo
 
+.vercel

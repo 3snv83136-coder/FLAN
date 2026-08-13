@@ -16,7 +16,7 @@
 
 | Date | Contexte / écran | Erreur | Cause racine | Correctif | Prévention |
 |---|---|---|---|---|---|
-| 2026-08-13 | env / Supabase | URL collée avec `/rest/v1/` | Copie depuis Data API au lieu de Project URL | URL = `https://<ref>.supabase.co` sans suffixe | Ne jamais coller de clés dans `.env.example` (commité) ; clés uniquement dans `.env.local` |
+| 2026-08-13 | Vercel /login | Application error Digest serveur | `redirect()` dans server action + `cookies().set` avalé/échoué en RSC | Login retourne `{ok}` + nav client ; `createClient` (set) vs `createClientReadOnly` (RSC) | Ne pas `redirect()` depuis action appelée hors flux navigation clair ; ne jamais set cookies en RSC |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
