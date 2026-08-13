@@ -125,7 +125,7 @@ export default async function StockPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="font-display text-3xl text-brun">
+        <h1 className="font-display text-3xl text-white">
           {profile.role === "vendeur" ? "Mon stock" : "Stock"}
         </h1>
         <p className="text-sm text-gris">{posName}</p>

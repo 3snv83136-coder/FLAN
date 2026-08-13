@@ -184,6 +184,153 @@ async function ensureStock(posByName) {
   console.log(`  Stock PDV : ${created} lignes ajoutées (0 si déjà présent)`);
 }
 
+function parisYmd(offsetDays) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const y = Number(parts.find((p) => p.type === "year")?.value);
+  const m = Number(parts.find((p) => p.type === "month")?.value);
+  const d = Number(parts.find((p) => p.type === "day")?.value);
+  const base = new Date(Date.UTC(y, m - 1, d));
+  base.setUTCDate(base.getUTCDate() + offsetDays);
+  return base.toISOString().slice(0, 10);
+}
+
+async function ensureAgendaAndLosses(boutiqueId) {
+  const { data: profiles } = await admin
+    .from("profiles")
+    .select("id, full_name, role");
+  if (!profiles?.length) return;
+
+  const { count: agendaCount } = await admin
+    .from("agenda_items")
+    .select("id", { count: "exact", head: true });
+
+  if (!agendaCount) {
+    const tomorrow = new Date();
+    tomorrow.setHours(9, 0, 0, 0);
+    const rows = profiles.map((p) => {
+      const start = new Date(tomorrow);
+      if (p.role === "vendeur") {
+        return {
+          profile_id: p.id,
+          title: "Ouverture Boutique Centre",
+          notes: "Caisse + stock matin",
+          starts_at: start.toISOString(),
+          ends_at: new Date(start.getTime() + 8 * 3600 * 1000).toISOString(),
+        };
+      }
+      if (p.role === "producteur") {
+        start.setHours(6, 0, 0, 0);
+        return {
+          profile_id: p.id,
+          title: "Production flans du jour",
+          notes: "Selon plan fabrication",
+          starts_at: start.toISOString(),
+          ends_at: new Date(start.getTime() + 5 * 3600 * 1000).toISOString(),
+        };
+      }
+      start.setHours(10, 0, 0, 0);
+      return {
+        profile_id: p.id,
+        title: "Tour des PDV",
+        notes: null,
+        starts_at: start.toISOString(),
+        ends_at: new Date(start.getTime() + 3 * 3600 * 1000).toISOString(),
+      };
+    });
+    const { error } = await admin.from("agenda_items").insert(rows);
+    if (error) throw error;
+    console.log(`  Agenda : ${rows.length} événements`);
+  } else {
+    console.log(`  Agenda : ${agendaCount} déjà présents`);
+  }
+
+  const yesterday = parisYmd(-1);
+  const tomorrow = parisYmd(1);
+  const { data: products } = await admin.from("products").select("id, name");
+  const vendeur = profiles.find((p) => p.role === "vendeur");
+  const producteur = profiles.find((p) => p.role === "producteur");
+  if (!products?.length || !vendeur || !producteur) return;
+
+  const { count: lossCount } = await admin
+    .from("losses")
+    .select("id", { count: "exact", head: true })
+    .eq("reason", "invendu");
+
+  if (!lossCount) {
+    const recordedAt = `${yesterday}T20:00:00.000Z`;
+    const lossRows = products.slice(0, 3).map((p, i) => ({
+      point_of_sale_id: boutiqueId,
+      product_id: p.id,
+      quantity: 2 + i,
+      reason: "invendu",
+      recorded_by: vendeur.id,
+      recorded_at: recordedAt,
+    }));
+    const { error } = await admin.from("losses").insert(lossRows);
+    if (error) throw error;
+    console.log(`  Invendus hier : ${lossRows.length} lignes`);
+  }
+
+  const { count: planCount } = await admin
+    .from("fabrication_plans")
+    .select("id", { count: "exact", head: true })
+    .eq("for_date", tomorrow);
+
+  if (!planCount) {
+    const { data: losses } = await admin
+      .from("losses")
+      .select("product_id, quantity, recorded_at")
+      .eq("reason", "invendu");
+
+    const byProduct = new Map();
+    for (const l of losses ?? []) {
+      const day = new Date(l.recorded_at).toISOString().slice(0, 10);
+      // approximate: include if date matches yesterday string
+      if (!String(l.recorded_at).startsWith(yesterday) && day !== yesterday) {
+        // also accept if recorded_at date in Paris — seed uses UTC date string
+        if (!String(l.recorded_at).includes(yesterday)) continue;
+      }
+      byProduct.set(
+        l.product_id,
+        (byProduct.get(l.product_id) ?? 0) + l.quantity,
+      );
+    }
+
+    // fallback: all invendus
+    if (byProduct.size === 0) {
+      for (const l of losses ?? []) {
+        byProduct.set(
+          l.product_id,
+          (byProduct.get(l.product_id) ?? 0) + l.quantity,
+        );
+      }
+    }
+
+    const plans = Array.from(byProduct.entries()).map(([product_id, qty]) => ({
+      product_id,
+      for_date: tomorrow,
+      quantity_suggested: qty,
+      quantity_planned: qty,
+      based_on_loss_date: yesterday,
+      status: "a_faire",
+      created_by: producteur.id,
+    }));
+
+    if (plans.length) {
+      const { error } = await admin.from("fabrication_plans").insert(plans);
+      if (error) throw error;
+      console.log(`  Fabrication demain : ${plans.length} lignes`);
+    }
+  } else {
+    console.log(`  Fabrication demain : ${planCount} déjà présentes`);
+  }
+}
+
 async function main() {
   console.log("→ Seed FLAN…");
   const posByName = await ensurePos();
@@ -193,6 +340,7 @@ async function main() {
   await ensureProducts();
   await ensureAccounts(boutique.id);
   await ensureStock(posByName);
+  await ensureAgendaAndLosses(boutique.id);
 
   console.log("\n✓ Seed terminé. Connexion sans mot de passe : tape ton nom sur /login.");
 }

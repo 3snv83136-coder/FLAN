@@ -206,7 +206,7 @@ export function SaleScreen({
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="font-display text-3xl text-brun">Vente</h1>
+            <h1 className="font-display text-3xl text-white">Vente</h1>
             <p className="text-sm text-gris">
               2 taps : produit, puis enregistrer.
             </p>

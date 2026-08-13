@@ -31,6 +31,6 @@ export async function requireProfile(): Promise<AppProfile> {
 
 export function homePathForRole(role: UserRole): string {
   if (role === "gerant") return "/dashboard";
-  if (role === "producteur") return "/";
+  if (role === "producteur") return "/fabrication";
   return "/vente";
 }

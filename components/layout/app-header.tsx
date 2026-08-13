@@ -9,6 +9,8 @@ function navForRole(role: AppProfile["role"]): NavItem[] {
   if (role === "gerant") {
     return [
       { href: "/dashboard", label: "Dashboard" },
+      { href: "/agenda", label: "Agenda" },
+      { href: "/fabrication", label: "Fabrication" },
       { href: "/vente", label: "Vente" },
       { href: "/stock", label: "Stock" },
     ];
@@ -17,9 +19,13 @@ function navForRole(role: AppProfile["role"]): NavItem[] {
     return [
       { href: "/vente", label: "Vente" },
       { href: "/stock", label: "Mon stock" },
+      { href: "/agenda", label: "Agenda" },
     ];
   }
-  return [{ href: "/", label: "Accueil" }];
+  return [
+    { href: "/fabrication", label: "Fabrication" },
+    { href: "/agenda", label: "Agenda" },
+  ];
 }
 
 export function AppHeader({
@@ -36,16 +42,16 @@ export function AppHeader({
   const items = navForRole(profile.role);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-gris/20 bg-creme/95 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-bleu-fonce/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href={items[0]?.href ?? "/"}
-            className="font-display text-2xl font-semibold text-caramel"
+            className="font-display text-2xl font-semibold text-container-jaune"
           >
             FLAN
           </Link>
-          <nav className="flex gap-1">
+          <nav className="flex flex-wrap gap-1">
             {items.map((item) => (
               <Link
                 key={item.href}
@@ -53,8 +59,8 @@ export function AppHeader({
                 className={cn(
                   "rounded-xl px-3 py-2 text-sm font-medium",
                   pathname === item.href
-                    ? "bg-caramel text-creme"
-                    : "text-brun hover:bg-white/70",
+                    ? "bg-container-jaune text-brun"
+                    : "text-white/90 hover:bg-white/10",
                 )}
               >
                 {item.label}
@@ -65,12 +71,12 @@ export function AppHeader({
 
         <div className="flex items-center gap-3">
           {!online ? (
-            <span className="rounded-lg bg-ambre/30 px-2 py-1 text-xs font-medium text-brun">
+            <span className="rounded-lg bg-container-orange/90 px-2 py-1 text-xs font-medium text-white">
               Hors ligne
             </span>
           ) : null}
           {pendingCount > 0 ? (
-            <span className="rounded-lg bg-caramel/15 px-2 py-1 text-xs font-medium text-caramel">
+            <span className="rounded-lg bg-container-jaune px-2 py-1 text-xs font-medium text-brun">
               {pendingCount} en file
             </span>
           ) : null}
@@ -80,7 +86,7 @@ export function AppHeader({
           <form action={signOut}>
             <button
               type="submit"
-              className="rounded-xl border border-gris/30 px-3 py-2 text-sm text-brun hover:bg-white"
+              className="rounded-xl border border-white/25 px-3 py-2 text-sm text-white hover:bg-white/10"
             >
               Quitter
             </button>

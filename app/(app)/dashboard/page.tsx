@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
 import { createClientReadOnly } from "@/lib/supabase/server";
 import { formatEuros } from "@/lib/utils";
+import { ColorContainer } from "@/components/ui/color-container";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,6 @@ export default async function DashboardPage() {
     day: "2-digit",
   }).format(new Date());
 
-  // Fenêtre large ; filtre « jour Paris » côté app
   const { data: sales } = await supabase
     .from("sales")
     .select("id, total_cents, point_of_sale_id, sold_at")
@@ -68,44 +69,105 @@ export default async function DashboardPage() {
 
   const posRows = Array.from(byPos.values()).sort((a, b) => b.total - a.total);
 
+  const { data: staff } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("is_active", true)
+    .order("full_name");
+
+  const { count: fabCount } = await supabase
+    .from("fabrication_plans")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "a_faire");
+
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="font-display text-3xl text-brun">Dashboard</h1>
+        <h1 className="font-display text-3xl text-white">Dashboard</h1>
         <p className="text-sm text-gris">Ventes du jour — {parisDate}</p>
       </header>
 
-      <section className="rounded-2xl bg-caramel p-6 text-creme">
-        <p className="text-sm text-creme/80">CA global du jour</p>
-        <p className="font-display text-4xl font-semibold">
-          {formatEuros(globalTotal)}
-        </p>
-        <p className="mt-1 text-sm text-creme/80">
-          {todaySales.length} vente{todaySales.length === 1 ? "" : "s"}
-        </p>
-      </section>
+      <div className="grid gap-4 md:grid-cols-2">
+        <ColorContainer tone="jaune" title="CA du jour" subtitle="Global">
+          <p className="font-display text-4xl font-semibold">
+            {formatEuros(globalTotal)}
+          </p>
+          <p className="text-sm opacity-80">
+            {todaySales.length} vente{todaySales.length === 1 ? "" : "s"}
+          </p>
+        </ColorContainer>
+
+        <ColorContainer
+          tone="orange"
+          title="Fabrication demain"
+          subtitle="Pâtissier"
+          action={
+            <Link
+              href="/fabrication"
+              className="rounded-xl bg-brun/20 px-3 py-1 text-sm font-medium"
+            >
+              Ouvrir
+            </Link>
+          }
+        >
+          <p className="text-3xl font-semibold">{fabCount ?? 0}</p>
+          <p className="text-sm opacity-80">ligne(s) à faire</p>
+        </ColorContainer>
+      </div>
+
+      <ColorContainer
+        tone="violet"
+        title="Agenda équipe"
+        subtitle="Un container par salarié"
+        action={
+          <Link
+            href="/agenda"
+            className="rounded-xl bg-white/20 px-3 py-1 text-sm font-medium"
+          >
+            Voir tout
+          </Link>
+        }
+      >
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {(staff ?? []).map((p) => (
+            <li
+              key={p.id as string}
+              className="rounded-xl bg-black/15 px-3 py-2 text-sm"
+            >
+              <p className="font-semibold">{p.full_name as string}</p>
+              <p className="opacity-80">
+                {p.role === "producteur"
+                  ? "Pâtissier"
+                  : p.role === "gerant"
+                    ? "Gérant"
+                    : "Vendeur"}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </ColorContainer>
 
       <section>
-        <h2 className="mb-3 font-display text-xl text-brun">Par point de vente</h2>
+        <h2 className="mb-3 font-display text-xl text-white">Par point de vente</h2>
         {posRows.length === 0 ? (
-          <p className="rounded-2xl border border-gris/25 bg-white/70 p-6 text-gris">
-            Pas encore de vente aujourd’hui.
-          </p>
+          <ColorContainer tone="blanc" title="Aucune vente">
+            <p className="text-sm opacity-80">Pas encore de vente aujourd’hui.</p>
+          </ColorContainer>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2">
-            {posRows.map((row) => (
-              <li
+            {posRows.map((row, i) => (
+              <ColorContainer
                 key={row.name}
-                className="rounded-2xl border border-gris/25 bg-white/80 p-4"
+                tone={i % 2 === 0 ? "cyan" : "vert"}
+                title={row.name}
               >
-                <p className="font-medium text-brun">{row.name}</p>
-                <p className="font-display text-2xl text-caramel">
+                <p className="font-display text-2xl font-semibold">
                   {formatEuros(row.total)}
                 </p>
-                <p className="text-sm text-gris">
+                <p className="text-sm opacity-80">
                   {row.count} vente{row.count === 1 ? "" : "s"}
                 </p>
-              </li>
+              </ColorContainer>
             ))}
           </ul>
         )}

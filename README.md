@@ -24,6 +24,7 @@ Stack : Next.js 14 · Supabase · Vercel · TypeScript.
 3. Dans le SQL Editor Supabase, exécuter **dans l’ordre** :
    - `supabase/migrations/0001_init_schema.sql`
    - `supabase/migrations/0002_record_sale.sql`
+   - `supabase/migrations/0003_agenda_fabrication.sql`
 4. Installer & seed :
    ```bash
    npm install

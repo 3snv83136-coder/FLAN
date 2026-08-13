@@ -17,9 +17,11 @@
 - [x] Écran vendeur **Mon stock** (lecture + alertes DLC)
 - [x] Dashboard gérant minimal : ventes du jour + CA par PDV
 
-> ✅ À la fin de la phase 1, l'app est déjà utilisable en vente réelle. C'est le premier vrai jalon.
+### Phase 1b — Agenda & fabrication (ajout validé)
+- [x] UI fond bleu + containers colorés
+- [x] `agenda_items` : agenda par salarié
+- [x] `fabrication_plans` : plan pâtissier demain depuis invendus veille
 
-### Phase 2 — Production & recettes
 - [ ] CRUD `ingredients` (+ coût, stock, seuil bas)
 - [ ] CRUD `recipes` + `recipe_ingredients`
 - [ ] Calcul du **coût matière** par produit

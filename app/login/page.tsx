@@ -9,7 +9,7 @@ export default async function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <div className="mb-10 text-center">
-        <p className="font-display text-5xl font-semibold tracking-tight text-caramel">
+        <p className="font-display text-5xl font-semibold tracking-tight text-container-jaune">
           FLAN
         </p>
         <p className="mt-2 text-base text-gris">Connexion équipe</p>

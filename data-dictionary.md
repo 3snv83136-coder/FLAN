@@ -161,6 +161,34 @@ Pertes / invendus / DLC dépassée.
 | recorded_by | uuid (FK → profiles) | — |
 | recorded_at | timestamptz | — |
 
+## agenda_items
+Événements d'agenda par salarié (planning du jour / de la semaine).
+
+| champ | type | description |
+|---|---|---|
+| id | uuid (PK) | — |
+| profile_id | uuid (FK → profiles) | le salarié concerné |
+| title | text | ex. « Marché Bastille », « Production » |
+| notes | text (nullable) | détail libre |
+| starts_at | timestamptz | début |
+| ends_at | timestamptz (nullable) | fin |
+| created_at | timestamptz | — |
+
+## fabrication_plans
+Plan de fabrication pour le pâtissier (`producteur`) : quantités à faire pour une date (souvent demain), calées sur les invendus de la veille.
+
+| champ | type | description |
+|---|---|---|
+| id | uuid (PK) | — |
+| product_id | uuid (FK → products) | flan à fabriquer |
+| for_date | date | jour de fabrication cible |
+| quantity_suggested | integer | suggestion depuis invendus veille (`losses.reason = invendu`) |
+| quantity_planned | integer | quantité validée / à produire |
+| based_on_loss_date | date | date des invendus utilisés pour la suggestion |
+| status | enum `fabrication_status` | `a_faire` \| `fait` \| `annule` |
+| created_by | uuid (FK → profiles) | — |
+| created_at | timestamptz | — |
+
 ---
 
 ## Enums
@@ -172,6 +200,7 @@ Pertes / invendus / DLC dépassée.
 - `transfer_status` : `envoye`, `recu`, `annule`
 - `payment_method` : `especes`, `cb`
 - `loss_reason` : `perime`, `casse`, `invendu`, `autre`
+- `fabrication_status` : `a_faire`, `fait`, `annule`
 
 ## Notes de cohérence
 - Une **vente** décrémente `stock_items` du PDV concerné.
@@ -179,3 +208,4 @@ Pertes / invendus / DLC dépassée.
 - Un **lot** décrémente `ingredients.stock_quantity` et alimente `stock_items` (central).
 - Une **perte** décrémente `stock_items`.
 - Le **coût matière** d'un produit = somme(`recipe_ingredients.quantity` × `ingredients.cost_per_unit_cents`) ÷ `batch_yield`.
+- Un **plan de fabrication** pour `for_date` s'appuie sur les `losses` (`reason = invendu`) du `based_on_loss_date` (veille).
