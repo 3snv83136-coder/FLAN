@@ -16,6 +16,8 @@ Prolonge `auth.users` de Supabase. Un profil par utilisateur (~10).
 | role | enum `user_role` | `vendeur` \| `producteur` \| `gerant` |
 | point_of_sale_id | uuid (FK → points_of_sale, nullable) | PDV rattaché (obligatoire pour un vendeur) |
 | is_active | boolean (default true) | compte actif |
+| contract_type | enum `contract_type` (nullable) | `cdd` \| `cdi` \| `alternance` \| `autre` |
+| work_weekdays | integer[] (default `{1,2,3,4,5}`) | jours travaillés ISO : 1 = lundi … 7 = dimanche |
 | created_at | timestamptz | — |
 
 ## points_of_sale
@@ -189,6 +191,30 @@ Plan de fabrication pour le pâtissier (`producteur`) : quantités à faire pour
 | created_by | uuid (FK → profiles) | — |
 | created_at | timestamptz | — |
 
+## employee_documents
+Pièces scannées d’un salarié (contrat CDD/CDI/alternance, autres). Fichiers dans Storage bucket `employee_documents`.
+
+| champ | type | description |
+|---|---|---|
+| id | uuid (PK) | — |
+| profile_id | uuid (FK → profiles) | le salarié |
+| kind | enum `document_kind` | `contrat` \| `autre` |
+| file_path | text | chemin Storage |
+| original_name | text | nom du fichier scanné |
+| uploaded_by | uuid (FK → profiles) | qui a scanné |
+| created_at | timestamptz | — |
+
+## time_clock_events
+Pointage interne (début / fin de poste). Pas d’outil externe en v1 : l’app enregistre l’heure.
+
+| champ | type | description |
+|---|---|---|
+| id | uuid (PK) | — |
+| profile_id | uuid (FK → profiles) | le salarié |
+| kind | enum `clock_kind` | `debut` \| `fin` |
+| clocked_at | timestamptz | horodatage réel du pointage |
+| created_at | timestamptz | — |
+
 ---
 
 ## Enums
@@ -201,6 +227,9 @@ Plan de fabrication pour le pâtissier (`producteur`) : quantités à faire pour
 - `payment_method` : `especes`, `cb`
 - `loss_reason` : `perime`, `casse`, `invendu`, `autre`
 - `fabrication_status` : `a_faire`, `fait`, `annule`
+- `contract_type` : `cdd`, `cdi`, `alternance`, `autre`
+- `document_kind` : `contrat`, `autre`
+- `clock_kind` : `debut`, `fin`
 
 ## Notes de cohérence
 - Une **vente** décrémente `stock_items` du PDV concerné.
@@ -209,3 +238,4 @@ Plan de fabrication pour le pâtissier (`producteur`) : quantités à faire pour
 - Une **perte** décrémente `stock_items`.
 - Le **coût matière** d'un produit = somme(`recipe_ingredients.quantity` × `ingredients.cost_per_unit_cents`) ÷ `batch_yield`.
 - Un **plan de fabrication** pour `for_date` s'appuie sur les `losses` (`reason = invendu`) du `based_on_loss_date` (veille).
+- Un **pointage** (`time_clock_events`) se compare aux `work_weekdays` et aux `agenda_items` du même jour (présent / hors planning).

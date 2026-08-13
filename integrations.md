@@ -24,6 +24,7 @@ En particulier :
 | Alertes stock bas / DLC / récap | email (Resend) ou SMS (un fournisseur FR) | v2+ |
 | Export comptable | export CSV/tableur, puis connecteur compta | v2+ |
 | Prévision de production | logique interne / IA (API Anthropic déjà dispo dans la stack) | v2+ |
+| Pointage externe (badgeuse) | connecteur vers un logiciel de pointage | v2+ |
 
 ## Variables d'environnement (à mettre dans Vercel + `.env.local`)
 ```

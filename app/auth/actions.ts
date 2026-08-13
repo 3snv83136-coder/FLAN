@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 
 export async function signOut() {
@@ -16,17 +16,6 @@ export type LoginCandidate = {
   full_name: string;
   role: string;
 };
-
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    throw new Error("Variables Supabase manquantes");
-  }
-  return createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
 
 export async function listLoginCandidates(): Promise<LoginCandidate[]> {
   try {

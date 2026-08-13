@@ -21,6 +21,7 @@
 - [x] UI fond bleu + containers colorés
 - [x] `agenda_items` : agenda par salarié
 - [x] `fabrication_plans` : plan pâtissier demain depuis invendus veille
+- [x] Container Agenda gérant : nommer un salarié, contrat CDD/CDI/alternance, scan documents, jours travaillés, pointage interne début/fin
 
 - [ ] CRUD `ingredients` (+ coût, stock, seuil bas)
 - [ ] CRUD `recipes` + `recipe_ingredients`
