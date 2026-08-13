@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import type { AppProfile } from "@/lib/sales/types";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 type NavItem = { href: string; label: string };
 
@@ -45,12 +46,7 @@ export function AppHeader({
     <header className="sticky top-0 z-20 border-b border-white/10 bg-bleu-fonce/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href={items[0]?.href ?? "/"}
-            className="font-display text-2xl font-semibold text-container-jaune"
-          >
-            FLAN
-          </Link>
+          <BrandLogo href={items[0]?.href ?? "/"} size="sm" />
           <nav className="flex flex-wrap gap-1">
             {items.map((item) => (
               <Link
