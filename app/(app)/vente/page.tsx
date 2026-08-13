@@ -13,7 +13,7 @@ export default async function VentePage({
   searchParams: { pos?: string };
 }) {
   const profile = await requireProfile();
-  if (profile.role === "producteur") redirect("/");
+  if (profile.role === "producteur") redirect("/equipe");
 
   const supabase = createClientReadOnly();
 

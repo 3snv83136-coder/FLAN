@@ -6,29 +6,7 @@ import { BrandLogo } from "@/components/brand/brand-logo";
 
 type NavItem = { href: string; label: string };
 
-function navForRole(role: AppProfile["role"]): NavItem[] {
-  if (role === "gerant") {
-    return [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/reglages", label: "Site" },
-      { href: "/agenda", label: "Agenda" },
-      { href: "/fabrication", label: "Fabrication" },
-      { href: "/vente", label: "Vente" },
-      { href: "/stock", label: "Stock" },
-    ];
-  }
-  if (role === "vendeur") {
-    return [
-      { href: "/vente", label: "Vente" },
-      { href: "/stock", label: "Mon stock" },
-      { href: "/agenda", label: "Agenda" },
-    ];
-  }
-  return [
-    { href: "/fabrication", label: "Fabrication" },
-    { href: "/agenda", label: "Agenda" },
-  ];
-}
+const NAV: NavItem[] = [{ href: "/equipe", label: "Accueil" }];
 
 export function AppHeader({
   profile,
@@ -41,13 +19,13 @@ export function AppHeader({
   pendingCount?: number;
   online?: boolean;
 }) {
-  const items = navForRole(profile.role);
+  const items = NAV;
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-bleu-fonce/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex flex-wrap items-center gap-3">
-          <BrandLogo href={items[0]?.href ?? "/"} size="sm" />
+          <BrandLogo href="/equipe" size="sm" />
           <nav className="flex flex-wrap gap-1">
             {items.map((item) => (
               <Link

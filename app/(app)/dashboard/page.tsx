@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
-  if (profile.role !== "gerant") redirect("/vente");
+  if (profile.role !== "gerant") redirect("/equipe");
 
   const supabase = createClientReadOnly();
 

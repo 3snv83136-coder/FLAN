@@ -27,7 +27,7 @@ function parisDateOffset(days: number) {
 
 export default async function FabricationPage() {
   const profile = await requireProfile();
-  if (profile.role === "vendeur") redirect("/vente");
+  if (profile.role === "vendeur") redirect("/equipe");
 
   const supabase = createClientReadOnly();
   const tomorrow = parisDateOffset(1);

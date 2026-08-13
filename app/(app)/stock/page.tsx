@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
 import { createClientReadOnly } from "@/lib/supabase/server";
 import { formatEuros } from "@/lib/utils";
@@ -7,14 +6,12 @@ export const dynamic = "force-dynamic";
 
 export default async function StockPage() {
   const profile = await requireProfile();
-  if (profile.role === "producteur") redirect("/");
-
   const supabase = createClientReadOnly();
 
   let posId = profile.point_of_sale_id;
   let posName = "Mon PDV";
 
-  if (profile.role === "gerant") {
+  if (profile.role === "gerant" || profile.role === "producteur") {
     const { data: firstPos } = await supabase
       .from("points_of_sale")
       .select("id, name")

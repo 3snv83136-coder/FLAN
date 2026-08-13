@@ -35,7 +35,7 @@ export function LoginForm({
   }, [pointsOfSale]);
 
   async function goHome() {
-    router.replace("/");
+    router.replace("/equipe");
     router.refresh();
   }
 

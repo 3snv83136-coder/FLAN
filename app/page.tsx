@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClientReadOnly } from "@/lib/supabase/server";
-import { homePathForRole } from "@/lib/auth/profile";
 import { LandingHero } from "@/components/home/landing-hero";
-import type { UserRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +18,7 @@ export default async function HomePage() {
       .single();
 
     if (profile?.is_active && profile.role) {
-      redirect(homePathForRole(profile.role as UserRole));
+      redirect("/equipe");
     }
   }
 
