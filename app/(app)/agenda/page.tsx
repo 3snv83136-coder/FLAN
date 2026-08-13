@@ -70,7 +70,7 @@ export default async function AgendaPage({
   const { data: profiles } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, contract_type, work_weekdays, usual_start_time, usual_end_time, max_hours_per_week, constraint_notes, is_active",
+      "id, full_name, role, contract_type, work_weekdays, usual_start_time, usual_end_time, max_hours_per_week, constraint_notes, is_active, caisse_pin_is_set",
     )
     .eq("is_active", true)
     .order("full_name");
@@ -166,6 +166,7 @@ export default async function AgendaPage({
       documents: docsBy.get(p.id as string) ?? [],
       clocksToday: clocksBy.get(p.id as string) ?? [],
       worksToday: weekdays.includes(todayIso),
+      caisse_pin_is_set: Boolean(p.caisse_pin_is_set),
     };
   });
 

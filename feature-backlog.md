@@ -24,6 +24,9 @@
 - [x] Container Agenda gérant : nommer un salarié, contrat CDD/CDI/alternance, scan documents, jours travaillés, pointage interne début/fin
 - [x] Planning semaine / mois généré selon contraintes de chacun (`work_weekdays`, horaires, plafond heures)
 
+### Phase 1c — Spec Comptoir (F2 PIN caisse)
+- [x] PIN caisse 4–6 chiffres hashé (`caisse_pin_hash`) : ouverture tablette sur le PDV du vendeur
+
 - [ ] CRUD `ingredients` (+ coût, stock, seuil bas)
 - [ ] CRUD `recipes` + `recipe_ingredients`
 - [ ] Calcul du **coût matière** par produit

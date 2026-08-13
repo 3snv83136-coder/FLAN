@@ -141,6 +141,31 @@ async function ensureAccounts(boutiqueId) {
   }
 }
 
+async function ensureCaissePin() {
+  const { data: camille, error } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("full_name", "Camille Vendeur")
+    .maybeSingle();
+  if (error || !camille) {
+    console.log("  PIN caisse : Camille introuvable, skip");
+    return;
+  }
+
+  const { error: pinError } = await admin.rpc("set_caisse_pin", {
+    p_profile_id: camille.id,
+    p_pin: "1234",
+  });
+  if (pinError) {
+    console.log(
+      "  PIN caisse : lance d’abord 0007_caisse_pin.sql —",
+      pinError.message,
+    );
+    return;
+  }
+  console.log("  PIN caisse Camille : 1234 (Boutique Centre)");
+}
+
 async function ensureStock(posByName) {
   const boutique = posByName.get("Boutique Centre");
   const marche = posByName.get("Marché Bastille");
@@ -339,10 +364,13 @@ async function main() {
 
   await ensureProducts();
   await ensureAccounts(boutique.id);
+  await ensureCaissePin();
   await ensureStock(posByName);
   await ensureAgendaAndLosses(boutique.id);
 
-  console.log("\n✓ Seed terminé. Connexion sans mot de passe : tape ton nom sur /login.");
+  console.log(
+    "\n✓ Seed terminé. Caisse : onglet Caisse + PIN Camille 1234. Équipe : tape le nom gérant / pâtissier.",
+  );
 }
 
 main().catch((err) => {

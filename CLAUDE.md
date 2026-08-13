@@ -10,6 +10,7 @@
 Une app interne pour un producteur-vendeur de flans qui **fabrique** (recettes, lots, stock de matières premières) et **vend** sur **plusieurs points de vente** (PDV). ~10 utilisateurs répartis en 3 rôles. Le geste le plus fréquent et le plus critique est **l'enregistrement d'une vente par un vendeur, sur tablette, potentiellement hors-ligne**.
 
 Détails complets : voir `app-spec.md`. Périmètre v1 vs plus tard : voir `feature-backlog.md`.
+Spec Comptoir (salariés, caisse, objectifs, consommables) : `docs/SPEC-COMPTOIR/README.md`.
 
 ## 2. Stack imposée
 

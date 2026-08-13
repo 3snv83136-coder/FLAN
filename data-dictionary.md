@@ -22,6 +22,8 @@ Prolonge `auth.users` de Supabase. Un profil par utilisateur (~10).
 | usual_end_time | time (default `17:00`) | heure de fin habituelle |
 | max_hours_per_week | numeric (nullable) | plafond d’heures par semaine (null = pas de plafond) |
 | constraint_notes | text (nullable) | contraintes libres (école, rendez-vous, etc.) |
+| caisse_pin_hash | text (nullable) | hash bcrypt du PIN caisse 4–6 chiffres (jamais en clair, jamais exposé au client) |
+| caisse_pin_is_set | boolean (généré) | `true` si un PIN est enregistré |
 | created_at | timestamptz | — |
 
 ## points_of_sale
@@ -244,3 +246,4 @@ Pointage interne (début / fin de poste). Pas d’outil externe en v1 : l’app 
 - Un **plan de fabrication** pour `for_date` s'appuie sur les `losses` (`reason = invendu`) du `based_on_loss_date` (veille).
 - Un **pointage** (`time_clock_events`) se compare aux `work_weekdays` et aux `agenda_items` du même jour (présent / hors planning).
 - Un **planning semaine/mois** ne pose un créneau `agenda_items` que sur un jour de `work_weekdays`, dans `usual_start_time`–`usual_end_time`, sans dépasser `max_hours_per_week`.
+- Le **PIN caisse** (`caisse_pin_hash`) ouvre la session vendeur sur le PDV de la tablette. Jamais stocké ni renvoyé en clair.

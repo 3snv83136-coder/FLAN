@@ -16,7 +16,7 @@
 
 | Date | Contexte / écran | Erreur | Cause racine | Correctif | Prévention |
 |---|---|---|---|---|---|
-| 2026-08-13 | Vercel /login | Application error Digest serveur | `redirect()` dans server action + `cookies().set` avalé/échoué en RSC | Login retourne `{ok}` + nav client ; `createClient` (set) vs `createClientReadOnly` (RSC) | Ne pas `redirect()` depuis action appelée hors flux navigation clair ; ne jamais set cookies en RSC |
+| 2026-08-13 | Agenda / profiles | Could not find the 'contract_type' column of 'profiles' in the schema cache | Migration `0004` non exécutée (ou cache PostgREST pas rechargé) | Script idempotent `0006_fix_hr_schema.sql` + `NOTIFY pgrst` | Après chaque ALTER, relancer le SQL Editor et `NOTIFY pgrst, 'reload schema'` |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |

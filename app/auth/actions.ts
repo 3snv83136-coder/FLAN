@@ -2,6 +2,7 @@
 
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function signOut() {
@@ -98,5 +99,52 @@ export async function loginAs(userId: string) {
     return { error: `Session non créée : ${verifyError.message}` };
   }
 
+  return { ok: true as const };
+}
+
+export async function loginWithCaissePin(pin: string, pointOfSaleId: string) {
+  const admin = createAdminClient();
+  const { data: userId, error } = await admin.rpc("verify_caisse_pin", {
+    p_pin: pin,
+    p_point_of_sale_id: pointOfSaleId,
+  });
+
+  if (error || !userId) {
+    const msg = error?.message ?? "";
+    if (msg.includes("pin_invalide")) {
+      return { error: "Le code doit faire 4 à 6 chiffres." };
+    }
+    if (msg.includes("pin_ambigu")) {
+      return { error: "Ce code est utilisé par plusieurs vendeurs. Change-le." };
+    }
+    if (msg.includes("pin_inconnu")) {
+      return { error: "Code incorrect ou pas d’affectation sur ce magasin." };
+    }
+    if (msg.includes("schema cache") || msg.includes("does not exist")) {
+      return { error: "PIN pas encore activé en base. Lance 0007_caisse_pin.sql." };
+    }
+    return { error: "Code incorrect ou pas d’affectation sur ce magasin." };
+  }
+
+  return loginAs(String(userId));
+}
+
+export async function setCaissePin(profileId: string, pin: string) {
+  const supabase = createServerSupabase();
+  const { error } = await supabase.rpc("set_caisse_pin", {
+    p_profile_id: profileId,
+    p_pin: pin,
+  });
+  if (error) {
+    const msg = error.message ?? "";
+    if (msg.includes("pin_invalide")) {
+      return { error: "Le PIN doit faire 4 à 6 chiffres." };
+    }
+    if (msg.includes("role_interdit")) {
+      return { error: "Réservé au gérant." };
+    }
+    return { error: msg };
+  }
+  revalidatePath("/agenda");
   return { ok: true as const };
 }

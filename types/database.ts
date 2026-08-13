@@ -17,6 +17,8 @@ export type Database = {
           point_of_sale_id: string | null;
           is_active: boolean;
           created_at: string;
+          caisse_pin_hash: string | null;
+          caisse_pin_is_set: boolean;
         };
         Insert: {
           id: string;
@@ -25,6 +27,7 @@ export type Database = {
           point_of_sale_id?: string | null;
           is_active?: boolean;
           created_at?: string;
+          caisse_pin_hash?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
       };
@@ -262,6 +265,16 @@ export type Database = {
           recorded_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["losses"]["Insert"]>;
+      };
+    };
+    Functions: {
+      set_caisse_pin: {
+        Args: { p_profile_id: string; p_pin: string };
+        Returns: undefined;
+      };
+      verify_caisse_pin: {
+        Args: { p_pin: string; p_point_of_sale_id: string };
+        Returns: string;
       };
     };
     Enums: {

@@ -8,6 +8,7 @@ import {
   updateEmployeeHr,
   uploadEmployeeDocument,
 } from "@/app/agenda/actions";
+import { setCaissePin } from "@/app/auth/actions";
 
 const WEEKDAYS = [
   { value: 1, label: "Lun" },
@@ -62,6 +63,7 @@ export type StaffCard = {
   documents: EmployeeDoc[];
   clocksToday: ClockEvent[];
   worksToday: boolean;
+  caisse_pin_is_set: boolean;
 };
 
 function formatWhen(iso: string) {
@@ -222,6 +224,47 @@ export function AgendaStaffContainer({
             .join(" · ") || "aucun"}
         </p>
       )}
+
+      {canManage && staff.role === "vendeur" ? (
+        <form
+          className="flex flex-col gap-2 rounded-xl bg-black/10 p-3"
+          action={(fd) => {
+            setMessage(null);
+            startTransition(async () => {
+              const pin = String(fd.get("caisse_pin") ?? "");
+              const res = await setCaissePin(staff.id, pin);
+              if (res && "error" in res && res.error) setMessage(res.error);
+              else setMessage("PIN caisse enregistré.");
+            });
+          }}
+        >
+          <h3 className="font-semibold">PIN caisse</h3>
+          <p className="text-sm opacity-80">
+            {staff.caisse_pin_is_set
+              ? "Un code est déjà enregistré. En saisir un nouveau le remplace."
+              : "Aucun code pour l’instant — le vendeur ne peut pas ouvrir la caisse."}
+          </p>
+          <label className="flex flex-col gap-1 text-sm">
+            Nouveau code (4 à 6 chiffres)
+            <input
+              name="caisse_pin"
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              pattern="[0-9]{4,6}"
+              required
+              className="min-h-10 rounded-lg bg-white px-3 text-brun"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={pending}
+            className="min-h-10 rounded-xl bg-black/20 text-sm font-semibold"
+          >
+            Enregistrer le PIN
+          </button>
+        </form>
+      ) : null}
 
       <div className="rounded-xl bg-black/10 p-3">
         <h3 className="mb-2 font-semibold">Pointage</h3>

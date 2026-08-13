@@ -1,80 +1,184 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { loginAs, type LoginCandidate } from "@/app/auth/actions";
+import { loginAs, loginWithCaissePin, type LoginCandidate } from "@/app/auth/actions";
 
 const ROLE_LABEL: Record<string, string> = {
   vendeur: "Vendeur",
-  producteur: "Producteur",
+  producteur: "Pâtissier",
   gerant: "Gérant",
 };
 
-export function LoginForm({ candidates }: { candidates: LoginCandidate[] }) {
+const DEVICE_POS_KEY = "flan_device_pos_id";
+
+export function LoginForm({
+  candidates,
+  pointsOfSale,
+}: {
+  candidates: LoginCandidate[];
+  pointsOfSale: { id: string; name: string }[];
+}) {
   const router = useRouter();
+  const [mode, setMode] = useState<"caisse" | "equipe">("caisse");
+  const [posId, setPosId] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const equipe = candidates.filter((c) => c.role !== "vendeur");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DEVICE_POS_KEY);
+    if (saved) setPosId(saved);
+    else if (pointsOfSale[0]) setPosId(pointsOfSale[0].id);
+  }, [pointsOfSale]);
+
+  async function goHome() {
+    router.replace("/");
+    router.refresh();
+  }
+
+  async function onPinSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!posId) {
+      setError("Choisis le magasin de cette tablette.");
+      return;
+    }
+    if (!/^[0-9]{4,6}$/.test(pin)) {
+      setError("Tape ton code caisse (4 à 6 chiffres).");
+      return;
+    }
+    setPending(true);
+    try {
+      localStorage.setItem(DEVICE_POS_KEY, posId);
+      const result = await loginWithCaissePin(pin, posId);
+      if (result && "error" in result && result.error) {
+        setError(result.error);
+        setPin("");
+        return;
+      }
+      await goHome();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Connexion impossible.");
+      setPin("");
+    } finally {
+      setPending(false);
+    }
+  }
 
   async function onPick(userId: string) {
     setError(null);
-    setPendingId(userId);
+    setPending(true);
     try {
       const result = await loginAs(userId);
       if (result && "error" in result && result.error) {
         setError(result.error);
-        setPendingId(null);
         return;
       }
-      router.replace("/");
-      router.refresh();
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Connexion impossible. Réessaie.",
-      );
-      setPendingId(null);
+      await goHome();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Connexion impossible.");
+    } finally {
+      setPending(false);
     }
   }
 
-  if (candidates.length === 0) {
-    return (
-      <p className="max-w-sm text-center text-sm text-gris">
-        Aucun compte actif. Lance d’abord{" "}
-        <code className="text-brun">npm run seed</code>.
-      </p>
-    );
+  function addDigit(d: string) {
+    setPin((p) => (p.length >= 6 ? p : p + d));
   }
 
   return (
-    <div className="flex w-full max-w-md flex-col gap-3">
-      <p className="mb-2 text-center text-sm text-gris">
-        Qui es-tu ? Tape ton nom pour te connecter.
-      </p>
+    <div className="flex w-full max-w-md flex-col gap-4">
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => setMode("caisse")}
+          className={`min-h-12 rounded-xl text-sm font-semibold ${
+            mode === "caisse" ? "bg-container-jaune text-brun" : "bg-white/15 text-white"
+          }`}
+        >
+          Caisse
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("equipe")}
+          className={`min-h-12 rounded-xl text-sm font-semibold ${
+            mode === "equipe" ? "bg-container-jaune text-brun" : "bg-white/15 text-white"
+          }`}
+        >
+          Équipe
+        </button>
+      </div>
 
-      {candidates.map((c) => {
-        const loading = pendingId === c.id;
-        return (
-          <button
-            key={c.id}
-            type="button"
-            disabled={pendingId !== null}
-            onClick={() => void onPick(c.id)}
-            className="flex min-h-16 items-center justify-between rounded-xl bg-caramel px-5 text-left text-creme transition hover:bg-caramel/90 disabled:opacity-60"
-          >
-            <span className="font-display text-xl font-semibold">
-              {loading ? "Connexion…" : c.full_name}
-            </span>
-            <span className="text-sm text-creme/80">
-              {ROLE_LABEL[c.role] ?? c.role}
-            </span>
-          </button>
-        );
-      })}
+      {mode === "caisse" ? (
+        <form onSubmit={(e) => void onPinSubmit(e)} className="flex flex-col gap-3">
+          <p className="text-center text-sm text-gris">
+            Magasin de la tablette + code caisse
+          </p>
+          <label className="flex flex-col gap-1 text-sm text-gris">
+            Magasin
+            <select
+              value={posId}
+              onChange={(e) => setPosId(e.target.value)}
+              className="min-h-12 rounded-xl bg-white px-3 text-brun"
+            >
+              {pointsOfSale.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="text-center font-display text-3xl tracking-[0.4em] text-container-jaune">
+            {pin.length ? "•".repeat(pin.length) : "····"}
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "OK"].map(
+              (key) => (
+                <button
+                  key={key}
+                  type={key === "OK" ? "submit" : "button"}
+                  disabled={pending}
+                  onClick={() => {
+                    if (key === "⌫") setPin((p) => p.slice(0, -1));
+                    else if (key !== "OK") addDigit(key);
+                  }}
+                  className="min-h-14 rounded-xl bg-caramel text-xl font-semibold text-creme disabled:opacity-50"
+                >
+                  {key === "OK" && pending ? "…" : key}
+                </button>
+              ),
+            )}
+          </div>
+        </form>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <p className="text-center text-sm text-gris">
+            Gérant / pâtissier — tape ton nom
+          </p>
+          {equipe.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              disabled={pending}
+              onClick={() => void onPick(c.id)}
+              className="flex min-h-16 items-center justify-between rounded-xl bg-caramel px-5 text-left text-creme disabled:opacity-60"
+            >
+              <span className="font-display text-xl font-semibold">
+                {c.full_name}
+              </span>
+              <span className="text-sm text-creme/80">
+                {ROLE_LABEL[c.role] ?? c.role}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {error ? (
-        <p
-          className="rounded-xl bg-alerte/10 px-3 py-2 text-sm text-alerte"
-          role="alert"
-        >
+        <p className="rounded-xl bg-alerte/10 px-3 py-2 text-sm text-alerte" role="alert">
           {error}
         </p>
       ) : null}
