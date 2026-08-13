@@ -39,12 +39,19 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isLogin && !isPublicHome) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
+    redirectUrl.searchParams.set("next", pathname);
+    if (pathname.startsWith("/equipe")) {
+      redirectUrl.searchParams.set("mode", "equipe");
+    }
     return NextResponse.redirect(redirectUrl);
   }
 
   if (user && isLogin) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/";
+    const next = request.nextUrl.searchParams.get("next");
+    redirectUrl.pathname =
+      next && next.startsWith("/") && !next.startsWith("//") ? next : "/equipe";
+    redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }
 

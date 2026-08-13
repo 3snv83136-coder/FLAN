@@ -32,7 +32,7 @@ export function LandingHero() {
       />
 
       <div
-        className={`absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-5 px-6 pb-12 text-center transition-all duration-1000 ${
+        className={`absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-4 px-6 pb-10 text-center transition-all duration-1000 ${
           arrived
             ? "translate-y-0 opacity-100"
             : "translate-y-6 opacity-0"
@@ -42,27 +42,38 @@ export function LandingHero() {
         <p className="font-display text-3xl text-white sm:text-4xl">
           Le Comptoir du Flan
         </p>
-        <ColorContainer
-          tone="jaune"
-          title="Vente en ligne"
-          subtitle="Commande tes flans, on s’occupe du reste"
-          className="w-full max-w-md text-left"
-        >
-          <a
-            href={BOUTIQUE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-h-14 items-center justify-center rounded-xl bg-brun text-lg font-semibold text-creme"
+
+        <div className="grid w-full max-w-md gap-3">
+          <ColorContainer
+            tone="jaune"
+            title="Vente en ligne"
+            subtitle="Commande tes flans"
+            className="text-left"
           >
-            Commander
-          </a>
-        </ColorContainer>
-        <Link
-          href="/login"
-          className="text-sm font-medium text-white/80 underline underline-offset-4"
-        >
-          Espace équipe
-        </Link>
+            <a
+              href={BOUTIQUE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-12 items-center justify-center rounded-xl bg-brun text-base font-semibold text-creme"
+            >
+              Commander
+            </a>
+          </ColorContainer>
+
+          <ColorContainer
+            tone="violet"
+            title="Équipe"
+            subtitle="Caisse, RH, stock, production…"
+            className="text-left"
+          >
+            <Link
+              href="/equipe"
+              className="flex min-h-12 items-center justify-center rounded-xl bg-white/20 text-base font-semibold text-white"
+            >
+              Entrer
+            </Link>
+          </ColorContainer>
+        </div>
       </div>
     </main>
   );

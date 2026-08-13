@@ -15,18 +15,26 @@ const DEVICE_POS_KEY = "flan_device_pos_id";
 export function LoginForm({
   candidates,
   pointsOfSale,
+  initialMode = "equipe",
+  nextPath = "/equipe",
 }: {
   candidates: LoginCandidate[];
   pointsOfSale: { id: string; name: string; photo_url?: string | null }[];
+  initialMode?: "caisse" | "equipe";
+  nextPath?: string;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"caisse" | "equipe">("caisse");
+  const [mode, setMode] = useState<"caisse" | "equipe">(initialMode);
   const [posId, setPosId] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const equipe = candidates.filter((c) => c.role !== "vendeur");
+  const safeNext =
+    nextPath.startsWith("/") && !nextPath.startsWith("//")
+      ? nextPath
+      : "/equipe";
 
   useEffect(() => {
     const saved = localStorage.getItem(DEVICE_POS_KEY);
@@ -35,7 +43,7 @@ export function LoginForm({
   }, [pointsOfSale]);
 
   async function goHome() {
-    router.replace("/equipe");
+    router.replace(safeNext);
     router.refresh();
   }
 

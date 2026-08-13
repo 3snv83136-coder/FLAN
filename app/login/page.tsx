@@ -6,7 +6,11 @@ import { sitePhotoUrl } from "@/lib/storage/site-photos";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { next?: string; mode?: string };
+}) {
   const candidates = await listLoginCandidates();
   const admin = createAdminClient();
   const first = await admin
@@ -35,13 +39,31 @@ export default async function LoginPage() {
     photo_url: sitePhotoUrl(p.photo_path ?? null),
   }));
 
+  const nextPath =
+    searchParams.next &&
+    searchParams.next.startsWith("/") &&
+    !searchParams.next.startsWith("//")
+      ? searchParams.next
+      : "/equipe";
+
+  const initialMode =
+    searchParams.mode === "caisse" ? "caisse" : "equipe";
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <div className="mb-10 flex flex-col items-center text-center">
         <BrandLogo size="lg" />
         <p className="mt-4 text-base text-gris">Connexion équipe</p>
+        <p className="mt-1 text-sm text-gris/80">
+          Ensuite tu arrives sur les containers
+        </p>
       </div>
-      <LoginForm candidates={candidates} pointsOfSale={pointsOfSale} />
+      <LoginForm
+        candidates={candidates}
+        pointsOfSale={pointsOfSale}
+        initialMode={initialMode}
+        nextPath={nextPath}
+      />
     </main>
   );
 }
