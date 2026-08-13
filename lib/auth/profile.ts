@@ -1,0 +1,36 @@
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type { AppProfile } from "@/lib/sales/types";
+import type { UserRole } from "@/types/database";
+
+export async function requireProfile(): Promise<AppProfile> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, role, point_of_sale_id, is_active")
+    .eq("id", user.id)
+    .single();
+
+  if (error || !data || !data.is_active) {
+    redirect("/login");
+  }
+
+  return {
+    id: data.id as string,
+    full_name: data.full_name as string,
+    role: data.role as UserRole,
+    point_of_sale_id: data.point_of_sale_id as string | null,
+  };
+}
+
+export function homePathForRole(role: UserRole): string {
+  if (role === "gerant") return "/dashboard";
+  if (role === "producteur") return "/";
+  return "/vente";
+}

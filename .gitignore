@@ -23,3 +23,7 @@
 # Supabase local (si utilisé)
 **/supabase/.temp/
 
+# Divers
+files.zip
+*.tsbuildinfo
+

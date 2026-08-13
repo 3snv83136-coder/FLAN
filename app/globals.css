@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --caramel: #c46a2f;
+  --ambre: #e9a94e;
+  --creme: #fbf3e4;
+  --brun: #3a2a1e;
+  --ok: #2e9e5b;
+  --alerte: #d64545;
+  --gris: #8a7e72;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, #f3d9b0 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, #f0c98a55 0%, transparent 50%),
+    var(--creme);
+  color: var(--brun);
+}
