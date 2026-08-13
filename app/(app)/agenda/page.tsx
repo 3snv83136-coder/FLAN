@@ -6,6 +6,12 @@ import {
   AgendaStaffContainer,
   type StaffCard,
 } from "@/components/agenda/agenda-staff-container";
+import { PlanningGrid } from "@/components/agenda/planning-grid";
+import {
+  parisYmd,
+  planningWindow,
+  type PlanningVue,
+} from "@/lib/agenda/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -36,34 +42,42 @@ function parisWeekdayIso(date = new Date()) {
 }
 
 function parisDayBounds() {
-  const parisDate = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Paris",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  const parisDate = parisYmd();
   const start = new Date(`${parisDate}T00:00:00+02:00`);
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-export default async function AgendaPage() {
+export default async function AgendaPage({
+  searchParams,
+}: {
+  searchParams: { vue?: string; from?: string };
+}) {
   const profile = await requireProfile();
   const supabase = createClientReadOnly();
   const canManage = profile.role === "gerant";
   const todayIso = parisWeekdayIso();
   const { start: dayStart, end: dayEnd } = parisDayBounds();
 
+  const vue: PlanningVue =
+    searchParams.vue === "mois" ? "mois" : "semaine";
+  const anchor =
+    searchParams.from && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.from)
+      ? searchParams.from
+      : parisYmd();
+  const window = planningWindow(vue, anchor);
+
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, role, contract_type, work_weekdays, is_active")
+    .select(
+      "id, full_name, role, contract_type, work_weekdays, usual_start_time, usual_end_time, max_hours_per_week, constraint_notes, is_active",
+    )
     .eq("is_active", true)
     .order("full_name");
 
-  const visibleProfiles =
-    canManage
-      ? (profiles ?? [])
-      : (profiles ?? []).filter((p) => p.id === profile.id);
+  const visibleProfiles = canManage
+    ? (profiles ?? [])
+    : (profiles ?? []).filter((p) => p.id === profile.id);
 
   const profileIds = visibleProfiles.map((p) => p.id as string);
 
@@ -72,7 +86,8 @@ export default async function AgendaPage() {
         .from("agenda_items")
         .select("id, profile_id, title, notes, starts_at, ends_at")
         .in("profile_id", profileIds)
-        .gte("starts_at", new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString())
+        .gte("starts_at", `${window.from}T00:00:00.000Z`)
+        .lte("starts_at", `${window.to}T23:59:59.999Z`)
         .order("starts_at")
     : { data: [] };
 
@@ -142,6 +157,11 @@ export default async function AgendaPage() {
       role: p.role as string,
       contract_type: (p.contract_type as string | null) ?? null,
       work_weekdays: weekdays,
+      usual_start_time: String(p.usual_start_time ?? "09:00").slice(0, 5),
+      usual_end_time: String(p.usual_end_time ?? "17:00").slice(0, 5),
+      max_hours_per_week:
+        p.max_hours_per_week == null ? null : Number(p.max_hours_per_week),
+      constraint_notes: (p.constraint_notes as string | null) ?? null,
       events: eventsBy.get(p.id as string) ?? [],
       documents: docsBy.get(p.id as string) ?? [],
       clocksToday: clocksBy.get(p.id as string) ?? [],
@@ -154,17 +174,35 @@ export default async function AgendaPage() {
       <header>
         <h1 className="font-display text-3xl text-white">Agenda</h1>
         <p className="text-sm text-gris">
-          {canManage
-            ? "Un container agenda par salarié — fiches, scans, jours, pointage"
-            : "Ton container agenda, planning et pointage"}
+          Planning semaine / mois selon les contraintes de chacun
         </p>
       </header>
+
+      <PlanningGrid
+        vue={vue}
+        from={window.from}
+        to={window.to}
+        days={window.days}
+        canManage={canManage}
+        people={cards.map((c) => ({
+          id: c.id,
+          full_name: c.full_name,
+          role: c.role,
+          contract_type: c.contract_type,
+          work_weekdays: c.work_weekdays,
+          usual_start_time: c.usual_start_time,
+          usual_end_time: c.usual_end_time,
+          max_hours_per_week: c.max_hours_per_week,
+          constraint_notes: c.constraint_notes,
+          events: c.events,
+        }))}
+      />
 
       {canManage ? (
         <ColorContainer
           tone="jaune"
           title="Nouveau salarié"
-          subtitle="Nom, contrat, jours travaillés"
+          subtitle="Nom, contrat, jours, horaires, contraintes"
         >
           <AddEmployeeForm />
         </ColorContainer>

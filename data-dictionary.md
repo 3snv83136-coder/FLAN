@@ -18,6 +18,10 @@ Prolonge `auth.users` de Supabase. Un profil par utilisateur (~10).
 | is_active | boolean (default true) | compte actif |
 | contract_type | enum `contract_type` (nullable) | `cdd` \| `cdi` \| `alternance` \| `autre` |
 | work_weekdays | integer[] (default `{1,2,3,4,5}`) | jours travaillés ISO : 1 = lundi … 7 = dimanche |
+| usual_start_time | time (default `09:00`) | heure de début habituelle |
+| usual_end_time | time (default `17:00`) | heure de fin habituelle |
+| max_hours_per_week | numeric (nullable) | plafond d’heures par semaine (null = pas de plafond) |
+| constraint_notes | text (nullable) | contraintes libres (école, rendez-vous, etc.) |
 | created_at | timestamptz | — |
 
 ## points_of_sale
@@ -239,3 +243,4 @@ Pointage interne (début / fin de poste). Pas d’outil externe en v1 : l’app 
 - Le **coût matière** d'un produit = somme(`recipe_ingredients.quantity` × `ingredients.cost_per_unit_cents`) ÷ `batch_yield`.
 - Un **plan de fabrication** pour `for_date` s'appuie sur les `losses` (`reason = invendu`) du `based_on_loss_date` (veille).
 - Un **pointage** (`time_clock_events`) se compare aux `work_weekdays` et aux `agenda_items` du même jour (présent / hors planning).
+- Un **planning semaine/mois** ne pose un créneau `agenda_items` que sur un jour de `work_weekdays`, dans `usual_start_time`–`usual_end_time`, sans dépasser `max_hours_per_week`.

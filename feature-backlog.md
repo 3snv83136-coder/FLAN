@@ -22,6 +22,7 @@
 - [x] `agenda_items` : agenda par salarié
 - [x] `fabrication_plans` : plan pâtissier demain depuis invendus veille
 - [x] Container Agenda gérant : nommer un salarié, contrat CDD/CDI/alternance, scan documents, jours travaillés, pointage interne début/fin
+- [x] Planning semaine / mois généré selon contraintes de chacun (`work_weekdays`, horaires, plafond heures)
 
 - [ ] CRUD `ingredients` (+ coût, stock, seuil bas)
 - [ ] CRUD `recipes` + `recipe_ingredients`

@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  hoursBetweenTimes,
+  isoWeekdayFromYmd,
+  parisYmd,
+  planningWindow,
+  startOfWeekMonday,
+  timeToIsoOnDay,
+} from "@/lib/agenda/dates";
 
 async function requireGerant() {
   const supabase = createClient();
@@ -80,6 +88,12 @@ export async function createEmployee(formData: FormData) {
     is_active: true,
     contract_type: contractType,
     work_weekdays: weekdays.length ? weekdays : [1, 2, 3, 4, 5],
+    usual_start_time: String(formData.get("usual_start_time") || "09:00"),
+    usual_end_time: String(formData.get("usual_end_time") || "17:00"),
+    max_hours_per_week: formData.get("max_hours_per_week")
+      ? Number(formData.get("max_hours_per_week"))
+      : null,
+    constraint_notes: String(formData.get("constraint_notes") ?? "").trim() || null,
   });
 
   if (profileError) {
@@ -111,6 +125,12 @@ export async function updateEmployeeHr(formData: FormData) {
       full_name: fullName,
       contract_type: contractType,
       work_weekdays: weekdays,
+      usual_start_time: String(formData.get("usual_start_time") || "09:00"),
+      usual_end_time: String(formData.get("usual_end_time") || "17:00"),
+      max_hours_per_week: formData.get("max_hours_per_week")
+        ? Number(formData.get("max_hours_per_week"))
+        : null,
+      constraint_notes: String(formData.get("constraint_notes") ?? "").trim() || null,
     })
     .eq("id", profileId);
 
@@ -134,6 +154,27 @@ export async function addAgendaItem(formData: FormData) {
   }
 
   const supabase = createClient();
+  const { data: person } = await supabase
+    .from("profiles")
+    .select("work_weekdays, max_hours_per_week")
+    .eq("id", profileId)
+    .single();
+
+  const starts = new Date(startsLocal);
+  const parisDay = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(starts);
+  const wd = isoWeekdayFromYmd(parisDay);
+  const weekdays = (person?.work_weekdays as number[] | null) ?? [1, 2, 3, 4, 5];
+  if (!weekdays.includes(wd)) {
+    return {
+      error: "Jour off pour cette personne (contrainte jours travaillés).",
+    };
+  }
+
   const { error } = await supabase.from("agenda_items").insert({
     profile_id: profileId,
     title,
@@ -145,6 +186,131 @@ export async function addAgendaItem(formData: FormData) {
   if (error) return { error: error.message };
   revalidatePath("/agenda");
   return { ok: true as const };
+}
+
+export async function deleteAgendaItem(itemId: string) {
+  const gate = await requireGerant();
+  if (gate.error) return { error: gate.error };
+
+  const supabase = createClient();
+  const { error } = await supabase.from("agenda_items").delete().eq("id", itemId);
+  if (error) return { error: error.message };
+  revalidatePath("/agenda");
+  return { ok: true as const };
+}
+
+export async function generatePlanning(formData: FormData) {
+  const gate = await requireGerant();
+  if (gate.error) return { error: gate.error };
+
+  const vue = String(formData.get("vue") ?? "semaine") === "mois" ? "mois" : "semaine";
+  const from = String(formData.get("from") ?? "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) {
+    return { error: "Période invalide." };
+  }
+
+  const window = planningWindow(vue, from);
+  const supabase = createClient();
+
+  const { data: staff, error: staffError } = await supabase
+    .from("profiles")
+    .select(
+      "id, full_name, role, work_weekdays, usual_start_time, usual_end_time, max_hours_per_week",
+    )
+    .eq("is_active", true);
+
+  if (staffError) return { error: staffError.message };
+
+  const rangeStart = `${window.from}T00:00:00.000Z`;
+  const rangeEnd = `${window.to}T23:59:59.999Z`;
+  const { data: existing } = await supabase
+    .from("agenda_items")
+    .select("id, profile_id, starts_at, ends_at")
+    .gte("starts_at", rangeStart)
+    .lte("starts_at", rangeEnd);
+
+  const existingByProfileDay = new Set(
+    (existing ?? []).map((e) => {
+      const day = parisYmd(new Date(e.starts_at as string));
+      return `${e.profile_id}:${day}`;
+    }),
+  );
+
+  const hoursByProfileWeek = new Map<string, number>();
+  for (const e of existing ?? []) {
+    const day = parisYmd(new Date(e.starts_at as string));
+    const week = startOfWeekMonday(day);
+    const start = new Date(e.starts_at as string).getTime();
+    const end = e.ends_at
+      ? new Date(e.ends_at as string).getTime()
+      : start + 8 * 3600_000;
+    const hrs = Math.max(0, (end - start) / 3600_000);
+    const key = `${e.profile_id}:${week}`;
+    hoursByProfileWeek.set(key, (hoursByProfileWeek.get(key) ?? 0) + hrs);
+  }
+
+  const toInsert: Array<{
+    profile_id: string;
+    title: string;
+    notes: string | null;
+    starts_at: string;
+    ends_at: string;
+  }> = [];
+  const skipped: string[] = [];
+
+  for (const person of staff ?? []) {
+    const weekdays = (person.work_weekdays as number[] | null) ?? [1, 2, 3, 4, 5];
+    const startT = String(person.usual_start_time ?? "09:00").slice(0, 5);
+    const endT = String(person.usual_end_time ?? "17:00").slice(0, 5);
+    const shiftHours = hoursBetweenTimes(startT, endT);
+    const maxH = person.max_hours_per_week
+      ? Number(person.max_hours_per_week)
+      : null;
+    const title =
+      person.role === "producteur"
+        ? "Production"
+        : person.role === "gerant"
+          ? "Gestion"
+          : "Vente";
+
+    for (const day of window.days) {
+      const wd = isoWeekdayFromYmd(day);
+      if (!weekdays.includes(wd)) continue;
+      if (existingByProfileDay.has(`${person.id}:${day}`)) continue;
+
+      const week = startOfWeekMonday(day);
+      const weekKey = `${person.id}:${week}`;
+      const already = hoursByProfileWeek.get(weekKey) ?? 0;
+      if (maxH != null && already + shiftHours > maxH + 0.01) {
+        skipped.push(
+          `${person.full_name} ${day} : plafond ${maxH} h / semaine`,
+        );
+        continue;
+      }
+
+      toInsert.push({
+        profile_id: person.id as string,
+        title,
+        notes: "Généré selon contraintes (jours + horaires)",
+        starts_at: timeToIsoOnDay(day, startT),
+        ends_at: timeToIsoOnDay(day, endT),
+      });
+      hoursByProfileWeek.set(weekKey, already + shiftHours);
+      existingByProfileDay.add(`${person.id}:${day}`);
+    }
+  }
+
+  if (toInsert.length) {
+    const { error } = await supabase.from("agenda_items").insert(toInsert);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/agenda");
+  return {
+    ok: true as const,
+    created: toInsert.length,
+    skipped: skipped.slice(0, 8),
+  };
 }
 
 export async function clockEvent(profileId: string, kind: "debut" | "fin") {

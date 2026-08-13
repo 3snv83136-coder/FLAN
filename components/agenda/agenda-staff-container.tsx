@@ -54,6 +54,10 @@ export type StaffCard = {
   role: string;
   contract_type: string | null;
   work_weekdays: number[];
+  usual_start_time: string;
+  usual_end_time: string;
+  max_hours_per_week: number | null;
+  constraint_notes: string | null;
   events: AgendaEvent[];
   documents: EmployeeDoc[];
   clocksToday: ClockEvent[];
@@ -161,6 +165,47 @@ export function AgendaStaffContainer({
               ))}
             </div>
           </fieldset>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex flex-col gap-1 text-sm">
+              Début habituel
+              <input
+                type="time"
+                name="usual_start_time"
+                defaultValue={staff.usual_start_time.slice(0, 5)}
+                className="min-h-10 rounded-lg bg-white px-3 text-brun"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Fin habituelle
+              <input
+                type="time"
+                name="usual_end_time"
+                defaultValue={staff.usual_end_time.slice(0, 5)}
+                className="min-h-10 rounded-lg bg-white px-3 text-brun"
+              />
+            </label>
+          </div>
+          <label className="flex flex-col gap-1 text-sm">
+            Plafond h / semaine (vide = aucun)
+            <input
+              type="number"
+              min={1}
+              step={0.5}
+              name="max_hours_per_week"
+              defaultValue={staff.max_hours_per_week ?? ""}
+              className="min-h-10 rounded-lg bg-white px-3 text-brun"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Autres contraintes
+            <textarea
+              name="constraint_notes"
+              rows={2}
+              defaultValue={staff.constraint_notes ?? ""}
+              placeholder="ex. école le mercredi, pas après 16h…"
+              className="rounded-lg bg-white px-3 py-2 text-brun"
+            />
+          </label>
           <button
             type="submit"
             disabled={pending}

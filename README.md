@@ -26,6 +26,7 @@ Stack : Next.js 14 · Supabase · Vercel · TypeScript.
    - `supabase/migrations/0002_record_sale.sql`
    - `supabase/migrations/0003_agenda_fabrication.sql`
    - `supabase/migrations/0004_agenda_rh.sql`
+   - `supabase/migrations/0005_planning_constraints.sql`
 4. Installer & seed :
    ```bash
    npm install

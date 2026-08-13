@@ -87,6 +87,45 @@ export function AddEmployeeForm() {
         </div>
       </fieldset>
 
+      <label className="flex flex-col gap-1 text-sm">
+        Début habituel
+        <input
+          type="time"
+          name="usual_start_time"
+          defaultValue="09:00"
+          className="min-h-11 rounded-xl border-0 bg-white px-3 text-brun"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Fin habituelle
+        <input
+          type="time"
+          name="usual_end_time"
+          defaultValue="17:00"
+          className="min-h-11 rounded-xl border-0 bg-white px-3 text-brun"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+        Plafond heures / semaine (vide = aucun)
+        <input
+          type="number"
+          min={1}
+          step={0.5}
+          name="max_hours_per_week"
+          placeholder="ex. 35"
+          className="min-h-11 rounded-xl border-0 bg-white px-3 text-brun"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+        Autres contraintes
+        <textarea
+          name="constraint_notes"
+          rows={2}
+          placeholder="ex. alternance : école le mercredi"
+          className="rounded-xl border-0 bg-white px-3 py-2 text-brun"
+        />
+      </label>
+
       <button
         type="submit"
         disabled={pending}
