@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function BrandLogo({
-  href = "/",
+  href,
   size = "md",
   className,
 }: {
@@ -27,7 +27,11 @@ export function BrandLogo({
   if (!href) return img;
 
   return (
-    <Link href={href} className="inline-flex shrink-0 items-center" aria-label="Le Comptoir du Flan">
+    <Link
+      href={href}
+      className="inline-flex shrink-0 items-center"
+      aria-label="Le Comptoir du Flan"
+    >
       {img}
     </Link>
   );

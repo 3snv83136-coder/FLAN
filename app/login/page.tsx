@@ -10,7 +10,7 @@ export default async function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <div className="mb-10 flex flex-col items-center text-center">
-        <BrandLogo href={undefined} size="lg" />
+        <BrandLogo size="lg" />
         <p className="mt-4 text-base text-gris">Connexion équipe</p>
       </div>
       <LoginForm candidates={candidates} />
