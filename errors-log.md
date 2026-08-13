@@ -17,6 +17,7 @@
 | Date | Contexte / écran | Erreur | Cause racine | Correctif | Prévention |
 |---|---|---|---|---|---|
 | 2026-08-13 | Agenda / profiles | Could not find the 'contract_type' column of 'profiles' in the schema cache | Migration `0004` non exécutée (ou cache PostgREST pas rechargé) | Script idempotent `0006_fix_hr_schema.sql` + `NOTIFY pgrst` | Après chaque ALTER, relancer le SQL Editor et `NOTIFY pgrst, 'reload schema'` |
+| 2026-08-13 | Seed PIN caisse | function gen_salt(unknown) does not exist | `set_caisse_pin` en `search_path = public` alors que pgcrypto est dans `extensions` | `0008_fix_caisse_pin_pgcrypto.sql` : `search_path = public, extensions` | Sur Supabase, toujours inclure `extensions` dans le search_path des fonctions qui appellent `crypt` / `gen_salt` |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |

@@ -87,7 +87,7 @@ export default async function DashboardPage() {
         <p className="text-sm text-gris">Ventes du jour — {parisDate}</p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <ColorContainer tone="jaune" title="CA du jour" subtitle="Global">
           <p className="font-display text-4xl font-semibold">
             {formatEuros(globalTotal)}
@@ -112,6 +112,24 @@ export default async function DashboardPage() {
         >
           <p className="text-3xl font-semibold">{fabCount ?? 0}</p>
           <p className="text-sm opacity-80">ligne(s) à faire</p>
+        </ColorContainer>
+
+        <ColorContainer
+          tone="cyan"
+          title="Site"
+          subtitle="Magasins, photos, produits, prix"
+          action={
+            <Link
+              href="/reglages"
+              className="rounded-xl bg-brun/20 px-3 py-1 text-sm font-medium"
+            >
+              Ouvrir
+            </Link>
+          }
+        >
+          <p className="text-sm opacity-80">
+            Changer les noms, ajouter un magasin, poser une photo.
+          </p>
         </ColorContainer>
       </div>
 

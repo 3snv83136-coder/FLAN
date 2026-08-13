@@ -20,7 +20,7 @@ create or replace function public.set_caisse_pin(p_profile_id uuid, p_pin text)
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.is_gerant() and coalesce(auth.role(), '') <> 'service_role' then
@@ -46,7 +46,7 @@ create or replace function public.verify_caisse_pin(
 returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_id uuid;

@@ -31,3 +31,31 @@ body {
   color: var(--texte);
   min-height: 100vh;
 }
+
+@keyframes landing-approach {
+  0% {
+    transform: translate(-50%, -50%) scale(0.018);
+    filter: blur(10px) brightness(0.55);
+  }
+  55% {
+    filter: blur(1px) brightness(0.9);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0) brightness(1);
+  }
+}
+
+.landing-approach {
+  transform: translate(-50%, -50%) scale(0.018);
+  filter: blur(10px) brightness(0.55);
+  animation: landing-approach 6.5s cubic-bezier(0.12, 0.7, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-approach {
+    animation: none;
+    transform: translate(-50%, -50%) scale(1);
+    filter: none;
+  }
+}

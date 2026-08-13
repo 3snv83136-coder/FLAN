@@ -40,7 +40,7 @@
 
 ### Phase 4 — Pilotage gérant
 - [ ] Dashboard complet : CA par PDV/produit, marge (prix − coût matière), pertes
-- [ ] Réglages : produits, prix, PDV, comptes/rôles
+- [x] Réglages Site : magasins (nom, type, adresse, photo, ajout) + produits (nom, prix, photo)
 - [ ] Alertes DLC & stock bas consolidées
 
 ## Parking lot (v2+, PAS en v1)

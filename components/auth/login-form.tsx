@@ -17,7 +17,7 @@ export function LoginForm({
   pointsOfSale,
 }: {
   candidates: LoginCandidate[];
-  pointsOfSale: { id: string; name: string }[];
+  pointsOfSale: { id: string; name: string; photo_url?: string | null }[];
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"caisse" | "equipe">("caisse");
@@ -117,20 +117,42 @@ export function LoginForm({
           <p className="text-center text-sm text-gris">
             Magasin de la tablette + code caisse
           </p>
-          <label className="flex flex-col gap-1 text-sm text-gris">
-            Magasin
-            <select
-              value={posId}
-              onChange={(e) => setPosId(e.target.value)}
-              className="min-h-12 rounded-xl bg-white px-3 text-brun"
-            >
-              {pointsOfSale.map((p) => (
-                <option key={p.id} value={p.id}>
+          <div className="grid grid-cols-2 gap-2">
+            {pointsOfSale.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPosId(p.id)}
+                className={`overflow-hidden rounded-xl text-left ${
+                  posId === p.id
+                    ? "ring-2 ring-container-jaune"
+                    : "ring-1 ring-white/20"
+                }`}
+              >
+                {p.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.photo_url}
+                    alt=""
+                    className="h-20 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-20 items-center justify-center bg-white/10 text-xs text-gris">
+                    Pas de photo
+                  </div>
+                )}
+                <span
+                  className={`block px-2 py-2 text-sm font-semibold ${
+                    posId === p.id
+                      ? "bg-container-jaune text-brun"
+                      : "bg-white/15 text-white"
+                  }`}
+                >
                   {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
+                </span>
+              </button>
+            ))}
+          </div>
           <p className="text-center font-display text-3xl tracking-[0.4em] text-container-jaune">
             {pin.length ? "•".repeat(pin.length) : "····"}
           </p>

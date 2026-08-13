@@ -3,6 +3,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { createClientReadOnly } from "@/lib/supabase/server";
 import { SaleScreen } from "@/components/vente/sale-screen";
 import type { SaleProduct } from "@/lib/sales/types";
+import { sitePhotoUrl } from "@/lib/storage/site-photos";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export default async function VentePage({
 
   const { data: productsRaw } = await supabase
     .from("products")
-    .select("id, name, price_cents, is_active")
+    .select("id, name, price_cents, is_active, photo_path")
     .eq("is_active", true)
     .order("name");
 
@@ -61,6 +62,7 @@ export default async function VentePage({
     name: p.name as string,
     price_cents: p.price_cents as number,
     stock_quantity: stockByProduct.get(p.id as string) ?? 0,
+    photo_url: sitePhotoUrl((p.photo_path as string | null) ?? null),
   }));
 
   return (

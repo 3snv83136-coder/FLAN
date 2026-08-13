@@ -35,6 +35,7 @@ Les points de vente (boutique, marché, stand…).
 | name | text | nom du PDV |
 | type | enum `pos_type` | `boutique` \| `marche` \| `stand` \| `autre` |
 | address | text (nullable) | adresse / emplacement |
+| photo_path | text (nullable) | photo du magasin, chemin Storage bucket `site_photos` |
 | is_active | boolean (default true) | — |
 | created_at | timestamptz | — |
 
@@ -47,6 +48,7 @@ Les flans vendables (un par parfum / variante).
 | name | text | nom / parfum du flan |
 | description | text (nullable) | — |
 | price_cents | integer | prix de vente unitaire en centimes |
+| photo_path | text (nullable) | photo produit, chemin Storage bucket `site_photos` |
 | is_active | boolean (default true) | vendable ou non |
 | created_at | timestamptz | — |
 
@@ -247,3 +249,4 @@ Pointage interne (début / fin de poste). Pas d’outil externe en v1 : l’app 
 - Un **pointage** (`time_clock_events`) se compare aux `work_weekdays` et aux `agenda_items` du même jour (présent / hors planning).
 - Un **planning semaine/mois** ne pose un créneau `agenda_items` que sur un jour de `work_weekdays`, dans `usual_start_time`–`usual_end_time`, sans dépasser `max_hours_per_week`.
 - Le **PIN caisse** (`caisse_pin_hash`) ouvre la session vendeur sur le PDV de la tablette. Jamais stocké ni renvoyé en clair.
+- Les **photos magasin / produit** (`photo_path`) sont dans le bucket public `site_photos` (lecture équipe, écriture gérant).

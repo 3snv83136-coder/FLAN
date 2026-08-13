@@ -5,6 +5,7 @@ export type SaleProduct = {
   name: string;
   price_cents: number;
   stock_quantity: number;
+  photo_url: string | null;
 };
 
 export type CartLine = {

@@ -10,6 +10,7 @@ function navForRole(role: AppProfile["role"]): NavItem[] {
   if (role === "gerant") {
     return [
       { href: "/dashboard", label: "Dashboard" },
+      { href: "/reglages", label: "Site" },
       { href: "/agenda", label: "Agenda" },
       { href: "/fabrication", label: "Fabrication" },
       { href: "/vente", label: "Vente" },
@@ -54,7 +55,7 @@ export function AppHeader({
                 href={item.href}
                 className={cn(
                   "rounded-xl px-3 py-2 text-sm font-medium",
-                  pathname === item.href
+                  pathname === item.href || pathname.startsWith(`${item.href}/`)
                     ? "bg-container-jaune text-brun"
                     : "text-white/90 hover:bg-white/10",
                 )}

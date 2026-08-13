@@ -37,6 +37,7 @@ export type Database = {
           name: string;
           type: PosType;
           address: string | null;
+          photo_path: string | null;
           is_active: boolean;
           created_at: string;
         };
@@ -45,6 +46,7 @@ export type Database = {
           name: string;
           type: PosType;
           address?: string | null;
+          photo_path?: string | null;
           is_active?: boolean;
           created_at?: string;
         };
@@ -56,6 +58,7 @@ export type Database = {
           name: string;
           description: string | null;
           price_cents: number;
+          photo_path: string | null;
           is_active: boolean;
           created_at: string;
         };
@@ -64,6 +67,7 @@ export type Database = {
           name: string;
           description?: string | null;
           price_cents: number;
+          photo_path?: string | null;
           is_active?: boolean;
           created_at?: string;
         };

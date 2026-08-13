@@ -245,12 +245,20 @@ export function SaleScreen({
                 type="button"
                 disabled={disabled}
                 onClick={() => addProduct(p)}
-                className="flex min-h-[120px] flex-col items-start justify-between rounded-2xl bg-caramel p-4 text-left text-creme shadow-sm transition hover:bg-caramel/90 disabled:cursor-not-allowed disabled:bg-gris/40"
+                className="relative flex min-h-[120px] flex-col items-start justify-between overflow-hidden rounded-2xl bg-caramel p-4 text-left text-creme shadow-sm transition hover:bg-caramel/90 disabled:cursor-not-allowed disabled:bg-gris/40"
               >
-                <span className="font-display text-xl font-semibold leading-tight">
+                {p.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.photo_url}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover opacity-35"
+                  />
+                ) : null}
+                <span className="relative font-display text-xl font-semibold leading-tight">
                   {p.name}
                 </span>
-                <span className="w-full">
+                <span className="relative w-full">
                   <span className="block text-lg font-semibold">
                     {formatEuros(p.price_cents)}
                   </span>
