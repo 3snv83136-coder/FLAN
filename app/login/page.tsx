@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/auth/login-form";
 import { listLoginCandidates } from "@/app/auth/actions";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -8,11 +9,9 @@ export default async function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
-      <div className="mb-10 text-center">
-        <p className="font-display text-5xl font-semibold tracking-tight text-container-jaune">
-          FLAN
-        </p>
-        <p className="mt-2 text-base text-gris">Connexion équipe</p>
+      <div className="mb-10 flex flex-col items-center text-center">
+        <BrandLogo href={undefined} size="lg" />
+        <p className="mt-4 text-base text-gris">Connexion équipe</p>
       </div>
       <LoginForm candidates={candidates} />
     </main>

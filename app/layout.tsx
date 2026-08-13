@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FLAN — Production & vente",
+  title: "Le Comptoir du Flan",
   description: "Gestion production et vente de flans multi-points de vente",
 };
 
