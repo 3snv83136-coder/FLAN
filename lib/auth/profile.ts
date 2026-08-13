@@ -29,6 +29,6 @@ export async function requireProfile(): Promise<AppProfile> {
   };
 }
 
-export function homePathForRole(_role?: UserRole): string {
+export function homePathForRole(): string {
   return "/equipe";
 }
